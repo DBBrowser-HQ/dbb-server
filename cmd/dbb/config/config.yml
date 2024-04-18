@@ -1,1 +1,5 @@
-bind_addr: "8080"
+bind_addr: "8082"
+
+db:
+  host: "db"
+  port: "5432"

@@ -7,6 +7,10 @@ endif
 build:
 	GOCACHE=`pwd`/.cache go build -v -o dbb-server ./cmd/dbb
 
+.PHONY: dRun
+dRun:
+	docker-compose up --build -d dbb-server
+
 .PHONY: mUp
 mUp:
 	migrate -path ./migrations -database \
