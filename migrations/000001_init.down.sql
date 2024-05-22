@@ -1,4 +1,4 @@
-DROP TABLE data_sources;
-DROP TABLE users_organizations;
-DROP TABLE organizations;
-DROP TABLE users3wq;
+DROP TABLE IF EXISTS datasources;
+DROP TABLE IF EXISTS users_organizations;
+DROP TABLE IF EXISTS organizations;
+DROP TABLE IF EXISTS users;

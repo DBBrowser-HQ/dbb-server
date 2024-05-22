@@ -5,28 +5,41 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    command: ./dbb-server
+    container_name: dbb-server
+    restart: unless-stopped
     ports:
-      - "8080:8082"
+      - "${BIND_ADDR}:${BIND_ADDR}"
     depends_on:
-      - db
+      - dbb-db
+    networks:
+      - appnet
 
-  db:
+  dbb-db:
     image: postgres
-    restart: always
+    container_name: dbb-db
+    restart: unless-stopped
     volumes:
       - tmp_dbb:/var/lib/postgresql/data
-    ports:
-      - "7890:5432"
+    expose:
+      - "${SERVER_DB_PORT}"
+    command: -p ${SERVER_DB_PORT}
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${SERVER_DB_USERNAME}"]
-      interval: 5s
+      test: [ "CMD", "pg_isready", "-U", "${SERVER_DB_USERNAME}", "-d", "${SERVER_DB_NAME}", "-p", "${SERVER_DB_PORT}" ]
+      interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 15s
     environment:
       POSTGRES_USER: ${SERVER_DB_USERNAME}
       POSTGRES_PASSWORD: ${SERVER_DB_PASSWORD}
       POSTGRES_DB: ${SERVER_DB_NAME}
+    networks:
+      - appnet
 
 volumes:
   tmp_dbb:
+
+networks:
+  appnet:
+    name: appnet
+    driver: bridge
