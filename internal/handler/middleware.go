@@ -1,7 +1,9 @@
-package handlers
+package handler
 
 import (
+	"dbb-server/internal/model"
 	"dbb-server/internal/myerrors"
+	"errors"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strings"
@@ -29,7 +31,7 @@ func (h *Handler) UserIdentify(c *gin.Context) {
 		return
 	}
 
-	userData, err := ParseAccessToken(headerParts[1])
+	userData, err := h.services.Auth.ParseAccessToken(headerParts[1])
 	if err != nil {
 		myerrors.New(c, http.StatusUnauthorized, err.Error())
 		return
@@ -37,4 +39,18 @@ func (h *Handler) UserIdentify(c *gin.Context) {
 
 	c.Set("userId", userData.UserId)
 	c.Next()
+}
+
+func (h *Handler) GetUserContext(c *gin.Context) (*model.AccessTokenClaimsExtension, error) {
+	id, ok := c.Get("userId")
+	if !ok {
+		return nil, errors.New("userId field not found in context")
+	}
+
+	var userId int
+	if userId, ok = id.(int); !ok {
+		return nil, errors.New("userId must be an integer")
+	}
+
+	return &model.AccessTokenClaimsExtension{UserId: userId}, nil
 }

@@ -11,6 +11,10 @@ build:
 dRun:
 	docker compose up --build -d
 
+.PHONy: runh2
+runh2:
+	docker run --name=h2-db --expose 7899 oscarfonts/h2
+
 ifeq (migration,$(firstword $(MAKECMDGOALS)))
   RUN_ARGS := $(wordlist 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS))
   $(eval $(RUN_ARGS):;@:)

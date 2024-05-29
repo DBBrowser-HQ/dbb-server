@@ -1,8 +1,17 @@
 CREATE TABLE IF NOT EXISTS users
 (
-    id       SERIAL PRIMARY KEY,
-    login    VARCHAR NOT NULL UNIQUE,
+    id            SERIAL PRIMARY KEY,
+    login         VARCHAR NOT NULL UNIQUE,
     password_hash VARCHAR NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS refresh_sessions
+(
+    id            SERIAL PRIMARY KEY,
+    refresh_token VARCHAR NOT NULL,
+    jti           VARCHAR NOT NULL,
+    user_id       INTEGER NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS organizations
@@ -14,7 +23,7 @@ CREATE TABLE IF NOT EXISTS organizations
 CREATE TABLE IF NOT EXISTS users_organizations
 (
     user_id         INTEGER     NOT NULL,
-    role            VARCHAR(30) NOT NULL DEFAULT 'observer',
+    role            VARCHAR(30) NOT NULL DEFAULT 'reader',
     organization_id INTEGER     NOT NULL,
     FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
     FOREIGN KEY (organization_id) REFERENCES organizations (id) ON DELETE CASCADE

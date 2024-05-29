@@ -1,0 +1,4 @@
+H2 JDBC (client/server mode) connection string:
+
+jdbc:h2:tcp://<server>[:<port>]/[<path>]<databaseName>[;USER=<username>][;PASSWORD=<value>]
+jdbc:h2:tcp://localhost/~/test;USER=sa;PASSWORD=123

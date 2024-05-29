@@ -2,10 +2,13 @@ package main
 
 import (
 	"context"
-	"dbb-server/internal/db_postgres"
-	"dbb-server/internal/handlers"
+	"dbb-server/internal/dockercli"
+	"dbb-server/internal/handler"
+	"dbb-server/internal/repository"
 	"dbb-server/internal/server"
+	"dbb-server/internal/service"
 	"errors"
+	"github.com/docker/docker/client"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 	"github.com/sirupsen/logrus"
@@ -22,7 +25,7 @@ func main() {
 		logrus.Fatalf("Error loading .env file: %s", err.Error())
 	}
 
-	db, err := db_postgres.NewPostgresDB(db_postgres.ConnectionData{
+	db, err := repository.NewPostgresDB(repository.ConnectionData{
 		Host:     os.Getenv("SERVER_DB_HOST"),
 		Port:     os.Getenv("SERVER_DB_PORT"),
 		Username: os.Getenv("SERVER_DB_USERNAME"),
@@ -34,12 +37,20 @@ func main() {
 		logrus.Fatalf("Can't connect to db: %s", err.Error())
 	}
 
-	handler := handlers.NewHandler(db)
+	cli, err := client.NewClientWithOpts()
+	if err != nil {
+		logrus.Fatalf("Can't create docker client: %s", err.Error())
+	}
+
+	repos := repository.NewRepository(db)
+	dockerCli := dockercli.NewDockerClient(cli)
+	services := service.NewService(repos, dockerCli)
+	handlers := handler.NewHandler(services)
 
 	srv := new(server.Server)
 	bindAddr := os.Getenv("BIND_ADDR")
 	go func() {
-		if err = srv.Run(bindAddr, handler.InitRoutes()); !errors.Is(err, http.ErrServerClosed) {
+		if err = srv.Run(bindAddr, handlers.InitRoutes()); !errors.Is(err, http.ErrServerClosed) {
 			logrus.Fatalf("Error while running server: %s", err.Error())
 		}
 		logrus.Info("Server is shutting down")

@@ -22,6 +22,8 @@ services:
       - tmp_dbb:/var/lib/postgresql/data
     expose:
       - "${SERVER_DB_PORT}"
+    ports:
+      - "${SERVER_DB_PORT}:${SERVER_DB_PORT}"
     command: -p ${SERVER_DB_PORT}
     healthcheck:
       test: [ "CMD", "pg_isready", "-U", "${SERVER_DB_USERNAME}", "-d", "${SERVER_DB_NAME}", "-p", "${SERVER_DB_PORT}" ]
@@ -36,8 +38,28 @@ services:
     networks:
       - appnet
 
+  h2-db:
+    build:
+      context: .
+      dockerfile: Dockerfile_H2
+    container_name: h2-db
+    restart: unless-stopped
+    expose:
+      - "${H2_DB_PORT}"
+      - "81"
+    ports:
+      - "${H2_DB_PORT}:${H2_DB_PORT}"
+    environment:
+      - H2_OPTIONS=-ifNotExists
+      - H2_DB_PORT=${H2_DB_PORT}
+    volumes:
+      - h2-data:/opt/h2-data
+    networks:
+      - appnet
+
 volumes:
   tmp_dbb:
+  h2-data:
 
 networks:
   appnet:

@@ -1,4 +1,4 @@
-package db_postgres
+package repository
 
 import (
 	"fmt"
@@ -7,6 +7,7 @@ import (
 
 const (
 	UsersTable              = "users"
+	RefreshSessionsTable    = "refresh_sessions"
 	OrganizationsTable      = "organizations"
 	UsersOrganizationsTable = "users_organizations"
 	DatasourcesTable        = "datasources"
