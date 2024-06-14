@@ -20,12 +20,11 @@ func (s *OrganizationService) GetOrganizationsForUser(userId int) ([]model.Organ
 }
 
 func (s *OrganizationService) CreteOrganization(userId int, name string) (int, error) {
-	id, err := s.repo.CreateOrganization(name)
+	id, err := s.repo.CreateOrganization(name, userId)
 	if err != nil {
 		return 0, err
 	}
-	err = s.repo.AddUserWithRoleToOrganization(userId, id, model.AdminRole)
-	return id, err
+	return id, nil
 }
 
 func (s *OrganizationService) GetUserRoleInOrganization(userId, organizationId int) (string, error) {

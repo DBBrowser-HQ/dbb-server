@@ -26,12 +26,30 @@ func (r *OrganizationPostgres) GetOrganizationsForUser(userId int) ([]model.Orga
 	return organizations, err
 }
 
-func (r *OrganizationPostgres) CreateOrganization(name string) (int, error) {
-	query := fmt.Sprintf(`INSERT INTO %s (name) VALUES ($1) RETURNING id`, OrganizationsTable)
+func (r *OrganizationPostgres) CreateOrganization(name string, userId int) (int, error) {
+	queryCreateOrg := fmt.Sprintf(`INSERT INTO %s (name) VALUES ($1) RETURNING id`, OrganizationsTable)
+	queryAddUser := fmt.Sprintf(`INSERT INTO %s (user_id, role, organization_id) VALUES ($1, $2, $3)`, UsersOrganizationsTable)
+
+	tx, err := r.db.Beginx()
+	if err != nil {
+		return 0, err
+	}
+	defer tx.Rollback()
 
 	var id int
-	err := r.db.Get(&id, query, name)
-	return id, err
+	err = tx.Get(&id, queryCreateOrg, name)
+	if err != nil {
+		return 0, err
+	}
+	_, err = tx.Exec(queryAddUser, userId, model.AdminRole, id)
+	if err != nil {
+		return 0, err
+	}
+	if err = tx.Commit(); err != nil {
+		return 0, err
+	}
+
+	return id, nil
 }
 
 func (r *OrganizationPostgres) AddUserWithRoleToOrganization(userId, organizationId int, role string) error {

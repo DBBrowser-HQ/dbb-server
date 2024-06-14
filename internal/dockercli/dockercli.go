@@ -122,3 +122,42 @@ func (s *DockerClient) CreateDockerContainer(ctx context.Context, dbHost string,
 		}
 	}
 }
+
+func (s *DockerClient) RemoveContainers(hosts []string) error {
+	opts := container.RemoveOptions{
+		RemoveVolumes: true,
+		Force:         true,
+	}
+
+	for _, host := range hosts {
+		err := s.Client.ContainerRemove(context.Background(), host, opts)
+		if err != nil {
+			return err
+		}
+		err = s.Client.VolumeRemove(context.Background(), host, true)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (s *DockerClient) PauseContainers(hosts []string) error {
+	for _, host := range hosts {
+		err := s.Client.ContainerPause(context.Background(), host)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (s *DockerClient) UnpauseContainers(hosts []string) error {
+	for _, host := range hosts {
+		err := s.Client.ContainerUnpause(context.Background(), host)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}

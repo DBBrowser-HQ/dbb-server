@@ -38,7 +38,6 @@ type User interface {
 
 type Datasource interface {
 	CreateDataSource(organizationId int, dbName string) (int, error)
-	RemoveContainers() error
 }
 
 type Service struct {

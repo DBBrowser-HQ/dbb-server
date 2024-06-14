@@ -7,7 +7,6 @@ import (
 	"dbb-server/internal/repository"
 	"errors"
 	"fmt"
-	"github.com/docker/docker/api/types/container"
 	"github.com/google/uuid"
 	_ "github.com/jmrobles/h2go"
 	"github.com/sirupsen/logrus"
@@ -85,28 +84,4 @@ func (s *DataSourceService) CreateDataSource(organizationId int, dbName string) 
 	}
 
 	return id, nil
-}
-
-func (s *DataSourceService) RemoveContainers() error {
-	hosts, err := s.repo.GetHostNames()
-	if err != nil {
-		return err
-	}
-
-	opts := container.RemoveOptions{
-		RemoveVolumes: true,
-		Force:         true,
-	}
-
-	for _, host := range hosts {
-		err = s.cli.Client.ContainerRemove(context.Background(), host, opts)
-		if err != nil {
-			return err
-		}
-		err = s.cli.Client.VolumeRemove(context.Background(), host, true)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
 }

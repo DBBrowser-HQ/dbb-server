@@ -18,7 +18,7 @@ type Auth interface {
 
 type Organization interface {
 	GetOrganizationsForUser(userId int) ([]model.OrganizationForUser, error)
-	CreateOrganization(name string) (int, error)
+	CreateOrganization(name string, userId int) (int, error)
 	AddUserWithRoleToOrganization(userId, organizationId int, role string) error
 	GetUserRoleInOrganization(userId, organizationId int) (string, error)
 	DeleteOrganization(organizationId int) (int, error)

@@ -1,8 +1,10 @@
 package repository
 
 import (
+	"errors"
 	"fmt"
 	"github.com/jmoiron/sqlx"
+	"time"
 )
 
 const (
@@ -31,8 +33,20 @@ func NewPostgresDB(data ConnectionData) (*sqlx.DB, error) {
 		return nil, err
 	}
 
-	if err = db.Ping(); err != nil {
-		return nil, err
+	ticker := time.NewTicker(1000 * time.Millisecond)
+	defer ticker.Stop()
+	timeout := time.Now().Add(30 * time.Second)
+
+	for {
+		select {
+		case <-ticker.C:
+			err = db.Ping()
+			if err == nil {
+				return db, nil
+			}
+			if time.Now().After(timeout) {
+				return nil, errors.New("timed out waiting for connection: " + err.Error())
+			}
+		}
 	}
-	return db, nil
 }

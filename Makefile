@@ -7,13 +7,21 @@ endif
 build:
 	GOCACHE=`pwd`/.cache go build -v -o dbb-server ./cmd/dbb
 
-.PHONY: dUp
-dUp:
+.PHONY: dockerUp
+dockerUp:
 	docker compose up --build -d
 
-.PHONY: dDown
-dDown:
-	docker compose down -v
+.PHONY: dockerDown
+dockerDown:
+	docker compose down -v -t 30
+
+.PHONY: dockerStop
+dockerStop:
+	docker compose stop
+
+.PHONY: dockerStart
+dockerStart:
+	docker compose start
 
 ifeq (migration,$(firstword $(MAKECMDGOALS)))
   RUN_ARGS := $(wordlist 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS))

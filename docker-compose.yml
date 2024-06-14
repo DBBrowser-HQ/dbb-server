@@ -7,12 +7,12 @@ services:
       dockerfile: Dockerfile
     container_name: dbb-server
     restart: unless-stopped
+    depends_on:
+      - dbb-db
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:rw
     ports:
       - "${BIND_ADDR}:${BIND_ADDR}"
-    depends_on:
-      - dbb-db
     networks:
       - appnet
 
@@ -21,7 +21,7 @@ services:
     container_name: dbb-db
     restart: unless-stopped
     volumes:
-      - tmp_dbb:/var/lib/postgresql/data
+      - ${SERVER_DB_VOLUME}:/var/lib/postgresql/data
     expose:
       - "${SERVER_DB_PORT}"
     ports:
