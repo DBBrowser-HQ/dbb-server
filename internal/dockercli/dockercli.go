@@ -58,12 +58,12 @@ func (s *DockerClient) CreateDockerContainer(ctx context.Context, dbHost string,
 		return 0, err
 	}
 
-	portBinding := nat.PortMap{containerPort: []nat.PortBinding{
-		{
-			HostIP:   "",
-			HostPort: dbPortString,
-		},
-	}}
+	//portBinding := nat.PortMap{containerPort: []nat.PortBinding{
+	//	{
+	//		HostIP:   "",
+	//		HostPort: dbPortString,
+	//	},
+	//}}
 
 	resp, err := s.Client.ContainerCreate(ctx,
 		&container.Config{
@@ -82,8 +82,8 @@ func (s *DockerClient) CreateDockerContainer(ctx context.Context, dbHost string,
 			},
 		},
 		&container.HostConfig{
-			PortBindings: portBinding,
-			NetworkMode:  "appnet",
+			//PortBindings: portBinding,
+			NetworkMode: "appnet",
 			RestartPolicy: container.RestartPolicy{
 				Name: "unless-stopped",
 			},
