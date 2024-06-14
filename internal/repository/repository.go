@@ -32,10 +32,20 @@ type User interface {
 	GetAllUsers(limit, offset int, search string) (int, []model.UserWithoutPassword, error)
 }
 
+type Datasource interface {
+	GetUser(userId int) (string, string, error)
+	GetUnusedPort() (int, error)
+	CheckDatasourceExistence(dbName string, organizationId int) (bool, error)
+	CreateDatasource(dbHost, dbName string, dbPort, organizationId int) (int, error)
+	AddRolesData(usernames, passwords []string, datasourceId int) error
+	GetHostNames() ([]string, error)
+}
+
 type Repository struct {
 	Auth
 	Organization
 	User
+	Datasource
 }
 
 func NewRepository(db *sqlx.DB) *Repository {
@@ -43,5 +53,6 @@ func NewRepository(db *sqlx.DB) *Repository {
 		Auth:         NewAuthPostgres(db),
 		Organization: NewOrganizationPostgres(db),
 		User:         NewUserPostgres(db),
+		Datasource:   NewDataSourcePostgres(db),
 	}
 }

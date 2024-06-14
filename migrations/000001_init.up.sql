@@ -32,11 +32,19 @@ CREATE TABLE IF NOT EXISTS users_organizations
 CREATE TABLE IF NOT EXISTS datasources
 (
     id              SERIAL PRIMARY KEY,
-    username        VARCHAR NOT NULL,
-    password        VARCHAR NOT NULL,
     host            VARCHAR NOT NULL,
-    port            VARCHAR NOT NULL,
+    port            INTEGER NOT NULL,
     name            VARCHAR NOT NULL,
     organization_id INTEGER NOT NULL,
-    FOREIGN KEY (organization_id) REFERENCES organizations (id) ON DELETE CASCADE
-)
+    FOREIGN KEY (organization_id) REFERENCES organizations (id) ON DELETE CASCADE,
+    UNIQUE (name, organization_id)
+);
+
+CREATE TABLE IF NOT EXISTS datasource_users
+(
+    id              SERIAL PRIMARY KEY,
+    username        VARCHAR NOT NULL,
+    password        VARCHAR NOT NULL,
+    datasource_id INTEGER NOT NULL,
+    FOREIGN KEY (datasource_id) REFERENCES datasources (id) ON DELETE CASCADE
+);

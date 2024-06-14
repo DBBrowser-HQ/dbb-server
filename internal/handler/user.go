@@ -2,7 +2,7 @@ package handler
 
 import (
 	"dbb-server/internal/model"
-	"dbb-server/internal/myerrors"
+	"dbb-server/internal/myerr"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
@@ -15,7 +15,7 @@ func (h *Handler) GetAllUsers(c *gin.Context) {
 	}
 	limitInt, err := strconv.Atoi(limit)
 	if err != nil {
-		myerrors.New(c, http.StatusBadRequest, err.Error())
+		myerr.New(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
@@ -25,7 +25,7 @@ func (h *Handler) GetAllUsers(c *gin.Context) {
 	}
 	pageInt, err := strconv.Atoi(page)
 	if err != nil {
-		myerrors.New(c, http.StatusBadRequest, err.Error())
+		myerr.New(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
@@ -33,7 +33,7 @@ func (h *Handler) GetAllUsers(c *gin.Context) {
 
 	count, users, err := h.services.User.GetAllUsers(limitInt, pageInt, search)
 	if err != nil {
-		myerrors.New(c, http.StatusInternalServerError, err.Error())
+		myerr.New(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
@@ -51,7 +51,7 @@ func (h *Handler) GetAllUsers(c *gin.Context) {
 func (h *Handler) GetAllUsersInOrganization(c *gin.Context) {
 	organizationId, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		myerrors.New(c, http.StatusBadRequest, err.Error())
+		myerr.New(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
@@ -61,7 +61,7 @@ func (h *Handler) GetAllUsersInOrganization(c *gin.Context) {
 	}
 	limitInt, err := strconv.Atoi(limit)
 	if err != nil {
-		myerrors.New(c, http.StatusBadRequest, err.Error())
+		myerr.New(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
@@ -71,21 +71,21 @@ func (h *Handler) GetAllUsersInOrganization(c *gin.Context) {
 	}
 	pageInt, err := strconv.Atoi(page)
 	if err != nil {
-		myerrors.New(c, http.StatusBadRequest, err.Error())
+		myerr.New(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	role := c.Query("role")
 	if role != "" {
 		if role != model.AdminRole && role != model.RedactorRole && role != model.ReaderRole {
-			myerrors.New(c, http.StatusBadRequest, "unknown role")
+			myerr.New(c, http.StatusBadRequest, "unknown role")
 			return
 		}
 	}
 
 	count, users, err := h.services.User.GetAllUsersInOrganization(organizationId, limitInt, pageInt, role)
 	if err != nil {
-		myerrors.New(c, http.StatusInternalServerError, err.Error())
+		myerr.New(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 

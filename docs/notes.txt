@@ -2,3 +2,7 @@ H2 JDBC (client/server mode) connection string:
 
 jdbc:h2:tcp://<server>[:<port>]/[<path>]<databaseName>[;USER=<username>][;PASSWORD=<value>]
 jdbc:h2:tcp://localhost/~/test;USER=sa;PASSWORD=123
+
+docker build -f ./Dockerfile_H2 -t h2-image .
+docker run --expose 81 --expose 7777 --restart unless-stopped --name h2-db-1 --network appnet -p 7777:7777 -e H2_OPTIONS=-ifNotExists -e H2_DB_PORT=7777 -v h2-db-1:/opt/h2-data h
+2-image

@@ -64,7 +64,7 @@ func (s *AuthService) GenerateTokensPair(userId int) (string, string, error) {
 
 	refreshToken := jwt.NewWithClaims(jwt.SigningMethodHS256, &model.RefreshTokenClaims{
 		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(accessTokenTTL).Unix(),
+			ExpiresAt: time.Now().Add(refreshTokenTTL).Unix(),
 			IssuedAt:  time.Now().Unix(),
 		},
 		RefreshTokenClaimsExtension: model.RefreshTokenClaimsExtension{

@@ -1,6 +1,7 @@
 package model
 
 const (
+	OwnerRole    = "owner"
 	AdminRole    = "admin"
 	RedactorRole = "redactor"
 	ReaderRole   = "reader"

@@ -11,6 +11,7 @@ const (
 	OrganizationsTable      = "organizations"
 	UsersOrganizationsTable = "users_organizations"
 	DatasourcesTable        = "datasources"
+	DatasourceUsersTable    = "datasource_users"
 )
 
 type ConnectionData struct {

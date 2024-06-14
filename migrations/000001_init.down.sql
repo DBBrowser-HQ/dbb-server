@@ -1,3 +1,4 @@
+DROP TABLE IF EXISTS datasource_users;
 DROP TABLE IF EXISTS datasources;
 DROP TABLE IF EXISTS users_organizations;
 DROP TABLE IF EXISTS organizations;

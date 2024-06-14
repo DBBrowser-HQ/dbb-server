@@ -22,7 +22,7 @@ func (h *Handler) InitRoutes() *gin.Engine {
 	{
 		auth.POST("/sign-in", h.SignIn)
 		auth.POST("/sign-up", h.SignUp)
-		auth.POST("/refresh", h.UserIdentify, h.RefreshTokens)
+		auth.POST("/refresh", h.RefreshTokens)
 		auth.POST("/logout", h.UserIdentify, h.Logout)
 	}
 

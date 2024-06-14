@@ -37,7 +37,7 @@ func main() {
 		logrus.Fatalf("Can't connect to db: %s", err.Error())
 	}
 
-	cli, err := client.NewClientWithOpts()
+	cli, err := client.NewClientWithOpts(client.WithVersionFromEnv())
 	if err != nil {
 		logrus.Fatalf("Can't create docker client: %s", err.Error())
 	}
@@ -60,6 +60,10 @@ func main() {
 	quitSignal := make(chan os.Signal)
 	signal.Notify(quitSignal, syscall.SIGINT, syscall.SIGTERM)
 	<-quitSignal
+
+	if err = services.Datasource.RemoveContainers(); err != nil {
+		logrus.Errorf("Can't remove datasource containers: %s", err.Error())
+	}
 
 	if err = srv.Shutdown(context.Background()); err != nil {
 		logrus.Errorf("Can't terminate server: %s", err.Error())

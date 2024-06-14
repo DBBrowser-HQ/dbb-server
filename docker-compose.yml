@@ -7,6 +7,8 @@ services:
       dockerfile: Dockerfile
     container_name: dbb-server
     restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:rw
     ports:
       - "${BIND_ADDR}:${BIND_ADDR}"
     depends_on:
@@ -15,7 +17,7 @@ services:
       - appnet
 
   dbb-db:
-    image: postgres
+    image: postgres:alpine3.20
     container_name: dbb-db
     restart: unless-stopped
     volumes:
@@ -38,28 +40,8 @@ services:
     networks:
       - appnet
 
-  h2-db:
-    build:
-      context: .
-      dockerfile: Dockerfile_H2
-    container_name: h2-db
-    restart: unless-stopped
-    expose:
-      - "${H2_DB_PORT}"
-      - "81"
-    ports:
-      - "${H2_DB_PORT}:${H2_DB_PORT}"
-    environment:
-      - H2_OPTIONS=-ifNotExists
-      - H2_DB_PORT=${H2_DB_PORT}
-    volumes:
-      - h2-data:/opt/h2-data
-    networks:
-      - appnet
-
 volumes:
   tmp_dbb:
-  h2-data:
 
 networks:
   appnet:

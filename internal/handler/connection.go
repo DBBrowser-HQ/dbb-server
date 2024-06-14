@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"dbb-server/internal/myerrors"
+	"dbb-server/internal/myerr"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"io"
@@ -18,20 +18,20 @@ func (h *Handler) ServeConnection(c *gin.Context) {
 
 	dbConn, err := net.Dial("tcp", dbAddress)
 	if err != nil {
-		myerrors.New(c, http.StatusInternalServerError, err.Error())
+		myerr.New(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 	defer dbConn.Close()
 
 	hijacker, ok := c.Writer.(http.Hijacker)
 	if !ok {
-		myerrors.New(c, http.StatusInternalServerError, "Hijacking error")
+		myerr.New(c, http.StatusInternalServerError, "Hijacking error")
 		return
 	}
 
 	clientConn, _, err := hijacker.Hijack()
 	if err != nil {
-		myerrors.New(c, http.StatusInternalServerError, err.Error())
+		myerr.New(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 	defer clientConn.Close()

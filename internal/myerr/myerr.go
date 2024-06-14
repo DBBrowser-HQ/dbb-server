@@ -1,4 +1,4 @@
-package myerrors
+package myerr
 
 import (
 	"dbb-server/internal/model"

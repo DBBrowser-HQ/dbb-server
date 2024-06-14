@@ -36,10 +36,16 @@ type User interface {
 	GetAllUsers(limit, page int, search string) (int, []model.UserWithoutPassword, error)
 }
 
+type Datasource interface {
+	CreateDataSource(organizationId int, dbName string) (int, error)
+	RemoveContainers() error
+}
+
 type Service struct {
 	Auth
 	Organization
 	User
+	Datasource
 }
 
 func NewService(repo *repository.Repository, cli *dockercli.DockerClient) *Service {
@@ -47,5 +53,6 @@ func NewService(repo *repository.Repository, cli *dockercli.DockerClient) *Servi
 		Auth:         NewAuthService(repo.Auth, cli),
 		Organization: NewOrganizationService(repo.Organization, cli),
 		User:         NewUserService(repo.User, cli),
+		Datasource:   NewDataSourceService(repo.Datasource, cli),
 	}
 }

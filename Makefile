@@ -7,13 +7,13 @@ endif
 build:
 	GOCACHE=`pwd`/.cache go build -v -o dbb-server ./cmd/dbb
 
-.PHONY: dRun
-dRun:
+.PHONY: dUp
+dUp:
 	docker compose up --build -d
 
-.PHONy: runh2
-runh2:
-	docker run --name=h2-db --expose 7899 oscarfonts/h2
+.PHONY: dDown
+dDown:
+	docker compose down -v
 
 ifeq (migration,$(firstword $(MAKECMDGOALS)))
   RUN_ARGS := $(wordlist 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS))
