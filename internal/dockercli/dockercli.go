@@ -49,7 +49,6 @@ func GetFreePort(dbPort int) int {
 	return dbPort
 }
 
-// CreateDockerContainer удалить тут проброс портов наружу
 func (s *DockerClient) CreateDockerContainer(ctx context.Context, dbHost string, dbPort int, dbUsername, dbPassword, dbName string) (int, error) {
 	actualPort := GetFreePort(dbPort)
 	dbPortString := strconv.Itoa(actualPort)
@@ -58,6 +57,7 @@ func (s *DockerClient) CreateDockerContainer(ctx context.Context, dbHost string,
 		return 0, err
 	}
 
+	// Собственно проброс портов
 	//portBinding := nat.PortMap{containerPort: []nat.PortBinding{
 	//	{
 	//		HostIP:   "",

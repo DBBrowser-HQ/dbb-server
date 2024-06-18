@@ -4,12 +4,12 @@ import (
 	"context"
 	"dbb-server/internal/dockercli"
 	"dbb-server/internal/model"
+	"dbb-server/internal/myerr"
 	"dbb-server/internal/repository"
 	"errors"
 	"fmt"
 	"github.com/google/uuid"
 	_ "github.com/jmrobles/h2go"
-	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/sha3"
 	"os"
 	"time"
@@ -66,21 +66,74 @@ func (s *DataSourceService) CreateDataSource(organizationId int, dbName string) 
 
 	db, err := repository.NewContainerDB(dbHost, dbUsername, dbPassword, dbName, actualDbPort)
 	if err != nil {
+		err1 := s.cli.RemoveContainers([]string{dbHost})
+		if err1 != nil {
+			return 0, errors.New(err.Error() + " and " + err1.Error())
+		}
 		return 0, err
 	}
 
 	if err = db.CreateRoles(usernames, passwords); err != nil {
+		err1 := s.cli.RemoveContainers([]string{dbHost})
+		if err1 != nil {
+			return 0, errors.New(err.Error() + " and " + err1.Error())
+		}
 		return 0, err
 	}
 
 	id, err := s.repo.CreateDatasource(dbHost, dbName, actualDbPort, organizationId)
 	if err != nil {
-		logrus.Info("here 3")
+		err1 := s.cli.RemoveContainers([]string{dbHost})
+		if err1 != nil {
+			return 0, errors.New(err.Error() + " and " + err1.Error())
+		}
 		return 0, err
 	}
 
 	if err = s.repo.AddRolesData(usernames, passwords, id); err != nil {
+		err1 := s.cli.RemoveContainers([]string{dbHost})
+		if err1 != nil {
+			return 0, errors.New(err.Error() + " and " + err1.Error())
+		}
 		return 0, err
+	}
+
+	return id, nil
+}
+
+func (s *DataSourceService) GetDatasourcesInOrganization(organizationId, userId int) ([]model.DatasourceInOrganization, error) {
+	isInOrg, err := s.repo.CheckUserInOrganization(organizationId, userId)
+	if err != nil {
+		return nil, err
+	}
+	if !isInOrg {
+		return nil, myerr.NewBadRequest("user is not in organization")
+	}
+
+	datasources, err := s.repo.GetDatasourcesInOrganization(organizationId)
+	if err != nil {
+		return nil, err
+	}
+	return datasources, nil
+}
+
+func (s *DataSourceService) DeleteDatasource(datasourceId, userId int) (int, error) {
+	userRole, err := s.repo.GetUserRoleInDatasource(datasourceId, userId)
+	if err != nil {
+		return 0, err
+	}
+
+	if userRole != model.AdminRole {
+		return 0, myerr.NewForbidden("you must be an admin in this organization")
+	}
+
+	id, host, err := s.repo.DeleteDatasource(datasourceId)
+	if err != nil {
+		return 0, err
+	}
+
+	if err = s.cli.RemoveContainers([]string{host}); err != nil {
+		return 0, myerr.NewInternalError(err.Error())
 	}
 
 	return id, nil

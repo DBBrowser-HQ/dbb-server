@@ -15,3 +15,39 @@ func New(c *gin.Context, statusCode int, message string) {
 		Payload: nil,
 	})
 }
+
+type BadRequest struct {
+	Err string `json:"error"`
+}
+
+func NewBadRequest(err string) BadRequest {
+	return BadRequest{Err: err}
+}
+
+func (b BadRequest) Error() string {
+	return b.Err
+}
+
+type InternalError struct {
+	Err string `json:"error"`
+}
+
+func NewInternalError(err string) InternalError {
+	return InternalError{Err: err}
+}
+
+func (b InternalError) Error() string {
+	return b.Err
+}
+
+type Forbidden struct {
+	Err string `json:"error"`
+}
+
+func NewForbidden(err string) Forbidden {
+	return Forbidden{Err: err}
+}
+
+func (b Forbidden) Error() string {
+	return b.Err
+}

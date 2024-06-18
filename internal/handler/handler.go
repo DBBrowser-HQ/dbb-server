@@ -50,6 +50,7 @@ func (h *Handler) InitRoutes() *gin.Engine {
 		datasources := api.Group("/datasources")
 		{
 			datasources.POST("/:id", h.CreateDatasource)
+			datasources.GET("/:id", h.GetDatasourcesInOrganization)
 			datasources.DELETE("/:id", h.DeleteDatasource)
 		}
 	}

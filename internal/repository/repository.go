@@ -39,6 +39,12 @@ type Datasource interface {
 	CreateDatasource(dbHost, dbName string, dbPort, organizationId int) (int, error)
 	AddRolesData(usernames, passwords []string, datasourceId int) error
 	GetHostNames() ([]string, error)
+
+	CheckUserInOrganization(organizationId, userId int) (bool, error)
+	GetDatasourcesInOrganization(organizationId int) ([]model.DatasourceInOrganization, error)
+
+	GetUserRoleInDatasource(datasourceId, userId int) (string, error)
+	DeleteDatasource(datasourceId int) (int, string, error)
 }
 
 type Repository struct {

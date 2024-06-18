@@ -2,6 +2,8 @@ package repository
 
 import (
 	"database/sql"
+	"dbb-server/internal/model"
+	"dbb-server/internal/myerr"
 	"errors"
 	"fmt"
 	"github.com/jmoiron/sqlx"
@@ -146,4 +148,70 @@ func (r *DataSourcePostgres) GetHostNames() ([]string, error) {
 		return nil, err
 	}
 	return hosts, nil
+}
+
+func (r *DataSourcePostgres) CheckUserInOrganization(organizationId, userId int) (bool, error) {
+	query := fmt.Sprintf(`SELECT COUNT(*) FROM %s WHERE organization_id=$1 AND user_id=$2`, UsersOrganizationsTable)
+
+	var count int
+	err := r.db.Get(&count, query, organizationId, userId)
+	if err != nil {
+		return false, myerr.NewInternalError(err.Error())
+	}
+	if count == 0 {
+		return false, nil
+	}
+	return true, nil
+}
+
+func (r *DataSourcePostgres) GetDatasourcesInOrganization(organizationId int) ([]model.DatasourceInOrganization, error) {
+	query := fmt.Sprintf(`SELECT id, name FROM %s WHERE organization_id=$1`, DatasourcesTable)
+
+	var datasources []model.DatasourceInOrganization
+	err := r.db.Select(&datasources, query, organizationId)
+	if err != nil {
+		return nil, myerr.NewInternalError(err.Error())
+	}
+
+	return datasources, nil
+}
+
+func (r *DataSourcePostgres) GetUserRoleInOrganization(userId, organizationId int) (string, error) {
+	query := fmt.Sprintf(`SELECT role FROM %s WHERE user_id=$1 AND organization_id=$2`, UsersOrganizationsTable)
+
+	var role string
+	err := r.db.Get(&role, query, userId, organizationId)
+	return role, err
+}
+
+func (r *DataSourcePostgres) GetUserRoleInDatasource(datasourceId, userId int) (string, error) {
+	query := fmt.Sprintf(`SELECT role FROM %s WHERE user_id=$1
+								AND organization_id=(SELECT organization_id FROM %s WHERE id=$2)`,
+		UsersOrganizationsTable, DatasourcesTable)
+
+	var role string
+	err := r.db.Get(&role, query, userId, datasourceId)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return "", myerr.NewBadRequest("you're not in organization with this datasource or datasource doesn't exist")
+		}
+		return "", myerr.NewInternalError(err.Error())
+	}
+	return role, nil
+}
+
+func (r *DataSourcePostgres) DeleteDatasource(datasourceId int) (int, string, error) {
+	query := fmt.Sprintf(`DELETE FROM %s WHERE id=$1 RETURNING id, host`, DatasourcesTable)
+
+	var data struct {
+		Id   int    `db:"id"`
+		Host string `db:"host"`
+	}
+
+	err := r.db.Get(&data, query, datasourceId)
+	if err != nil {
+		return 0, "", myerr.NewInternalError(err.Error())
+	}
+
+	return data.Id, data.Host, nil
 }
