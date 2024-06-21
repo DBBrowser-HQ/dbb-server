@@ -16,7 +16,7 @@ func NewHandler(services *service.Service) *Handler {
 func (h *Handler) InitRoutes() *gin.Engine {
 	router := gin.New()
 
-	router.Any("/connect/:dbName", h.ServeConnection)
+	router.GET("/connect/:id", h.UserIdentify, h.ServeConnection)
 
 	auth := router.Group("/auth")
 	{

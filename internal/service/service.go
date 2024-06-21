@@ -40,6 +40,8 @@ type Datasource interface {
 	CreateDataSource(organizationId int, dbName string) (int, error)
 	GetDatasourcesInOrganization(organizationId, userId int) ([]model.DatasourceInOrganization, error)
 	DeleteDatasource(datasourceId, userId int) (int, error)
+
+	GetDatasourceData(datasourceId, userId int) (model.Datasource, model.DatasourceUser, error)
 }
 
 type Service struct {

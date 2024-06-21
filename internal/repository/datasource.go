@@ -215,3 +215,39 @@ func (r *DataSourcePostgres) DeleteDatasource(datasourceId int) (int, string, er
 
 	return data.Id, data.Host, nil
 }
+
+func (r *DataSourcePostgres) GetDatasourceData(datasourceId int, role string) (model.Datasource, model.DatasourceUser, error) {
+	queryGetDatasource := fmt.Sprintf(`SELECT id, host, port, name FROM %s WHERE id=$1`, DatasourcesTable)
+	queryGetUser := fmt.Sprintf(`SELECT id, username, password FROM %s WHERE username=$1`, DatasourceUsersTable)
+
+	var datasource model.Datasource
+	var user model.DatasourceUser
+
+	tx, err := r.db.Beginx()
+	if err != nil {
+		return datasource, user, myerr.NewInternalError(err.Error())
+	}
+	defer tx.Rollback()
+
+	err = tx.Get(&datasource, queryGetDatasource, datasourceId)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return datasource, user, myerr.NewBadRequest("no such datasource: " + err.Error())
+		}
+		return datasource, user, myerr.NewInternalError(err.Error())
+	}
+
+	err = tx.Get(&user, queryGetUser, role)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return datasource, user, myerr.NewBadRequest("no such user: " + err.Error())
+		}
+		return datasource, user, myerr.NewInternalError(err.Error())
+	}
+
+	if err = tx.Commit(); err != nil {
+		return datasource, user, myerr.NewInternalError(err.Error())
+	}
+
+	return datasource, user, nil
+}

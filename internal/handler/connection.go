@@ -3,47 +3,58 @@ package handler
 import (
 	"dbb-server/internal/myerr"
 	"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
-	"io"
 	"net"
 	"net/http"
-	"os"
+	"strconv"
 )
 
-// ServeConnection DON'T WORK
-func (h *Handler) ServeConnection(c *gin.Context) {
-	dbHost := os.Getenv("H2_DB_HOST")
-	dbPort := os.Getenv("H2_DB_PORT")
-	dbAddress := dbHost + ":" + dbPort
-
-	dbConn, err := net.Dial("tcp", dbAddress)
-	if err != nil {
-		myerr.New(c, http.StatusInternalServerError, err.Error())
-		return
-	}
-	defer dbConn.Close()
-
-	hijacker, ok := c.Writer.(http.Hijacker)
-	if !ok {
-		myerr.New(c, http.StatusInternalServerError, "Hijacking error")
-		return
-	}
-
-	clientConn, _, err := hijacker.Hijack()
-	if err != nil {
-		myerr.New(c, http.StatusInternalServerError, err.Error())
-		return
-	}
-	defer clientConn.Close()
-
-	go func() {
-		logrus.Info("Start messaging")
-		if _, err = io.Copy(dbConn, clientConn); err != nil {
-			logrus.Println("Error forwarding data from client to db:", err)
+func findDbbProxyIp() string {
+	ips, _ := net.LookupIP("dbb-proxy")
+	for _, ip := range ips {
+		if ipv4 := ip.To4(); ipv4 != nil {
+			return ipv4.String()
 		}
-	}()
-
-	if _, err = io.Copy(clientConn, dbConn); err != nil {
-		logrus.Println("Error forwarding data from db to client:", err)
 	}
+	return ""
+}
+
+var (
+	dbbProxyIp = findDbbProxyIp()
+)
+
+func (h *Handler) ServeConnection(c *gin.Context) {
+	if c.ClientIP() != dbbProxyIp {
+		if dbbProxyIp == "" {
+			myerr.New(c, http.StatusInternalServerError, "Can't find dbb-proxy ip")
+			return
+		}
+		myerr.New(c, http.StatusForbidden, "only for proxy")
+		return
+	}
+
+	datasourceId, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		myerr.New(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	userData, err := h.GetUserContext(c)
+	if err != nil {
+		myerr.New(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	datasource, user, err := h.services.Datasource.GetDatasourceData(datasourceId, userData.UserId)
+	if err != nil {
+		myerr.NewErrorWithType(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"host":     datasource.Host,
+		"port":     datasource.Port,
+		"user":     user.Username,
+		"password": user.Password,
+		"name":     datasource.Name,
+	})
 }

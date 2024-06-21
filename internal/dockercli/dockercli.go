@@ -10,6 +10,7 @@ import (
 	"github.com/docker/go-connections/nat"
 	"net"
 	"os"
+	"path/filepath"
 	"strconv"
 	"time"
 )
@@ -65,6 +66,11 @@ func (s *DockerClient) CreateDockerContainer(ctx context.Context, dbHost string,
 	//	},
 	//}}
 
+	currentDir := os.Getenv("CURRENT_DIR")
+	if currentDir == "" {
+		return 0, errors.New("CURRENT_DIR is not set")
+	}
+
 	resp, err := s.Client.ContainerCreate(ctx,
 		&container.Config{
 			Image: "postgres-image",
@@ -89,6 +95,9 @@ func (s *DockerClient) CreateDockerContainer(ctx context.Context, dbHost string,
 			},
 			Binds: []string{
 				fmt.Sprintf("%s:/var/lib/postgresql/data", dbHost),
+				fmt.Sprintf("%s%s:/docker-entrypoint-initdb.d/copy.sh", currentDir, filepath.Join("postgresql", "copy.sh")),
+				fmt.Sprintf("%s%s:/psqlcopy/pg_hba.conf", currentDir, filepath.Join("postgresql", "pg_hba.conf")),
+				fmt.Sprintf("%s%s:/psqlcopy/postgresql.conf", currentDir, filepath.Join("postgresql", "postgresql.conf")),
 			},
 		},
 		&network.NetworkingConfig{

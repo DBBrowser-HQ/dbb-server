@@ -3,6 +3,7 @@ package service
 import (
 	"dbb-server/internal/dockercli"
 	"dbb-server/internal/model"
+	"dbb-server/internal/myerr"
 	"dbb-server/internal/repository"
 	"errors"
 	"fmt"
@@ -23,9 +24,8 @@ func NewAuthService(repo repository.Auth, cli *dockercli.DockerClient) *AuthServ
 }
 
 const (
-	maxSessionsNumber = 5
-	accessTokenTTL    = 1 * time.Hour
-	refreshTokenTTL   = 7 * 24 * time.Hour
+	accessTokenTTL  = 1 * time.Hour
+	refreshTokenTTL = 7 * 24 * time.Hour
 )
 
 func generatePasswordHash(login, password string) string {
@@ -126,18 +126,18 @@ func (s *AuthService) ParseAccessToken(accessToken string) (*model.AccessTokenCl
 func (s *AuthService) ParseRefreshToken(refreshToken string) (*model.RefreshTokenClaimsExtension, error) {
 	token, err := jwt.ParseWithClaims(refreshToken, &model.RefreshTokenClaims{}, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, errors.New("invalid signing method")
+			return nil, myerr.NewBadRequest("invalid signing method")
 		}
 
 		return []byte(os.Getenv("REFRESH_SIGNING_KEY")), nil
 	})
 
 	if err != nil {
-		return nil, err
+		return nil, myerr.NewInternalError(err.Error())
 	}
 
 	if claims, ok := token.Claims.(*model.RefreshTokenClaims); !ok {
-		return nil, errors.New("invalid refresh token claims type")
+		return nil, myerr.NewBadRequest("invalid refresh token claims type")
 	} else {
 		return &claims.RefreshTokenClaimsExtension, nil
 	}

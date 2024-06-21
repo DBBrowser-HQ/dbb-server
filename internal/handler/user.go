@@ -45,7 +45,6 @@ func (h *Handler) GetAllUsers(c *gin.Context) {
 			"rows":  users,
 		},
 	})
-
 }
 
 func (h *Handler) GetAllUsersInOrganization(c *gin.Context) {

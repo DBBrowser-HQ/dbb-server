@@ -138,3 +138,16 @@ func (s *DataSourceService) DeleteDatasource(datasourceId, userId int) (int, err
 
 	return id, nil
 }
+
+func (s *DataSourceService) GetDatasourceData(datasourceId, userId int) (model.Datasource, model.DatasourceUser, error) {
+	userRole, err := s.repo.GetUserRoleInDatasource(datasourceId, userId)
+	if err != nil {
+		return model.Datasource{}, model.DatasourceUser{}, err
+	}
+
+	if userRole != model.AdminRole && userRole != model.RedactorRole && userRole != model.ReaderRole {
+		return model.Datasource{}, model.DatasourceUser{}, myerr.NewInternalError("user has unexpected role")
+	}
+
+	return s.repo.GetDatasourceData(datasourceId, userRole)
+}

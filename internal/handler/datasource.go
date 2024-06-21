@@ -54,14 +54,7 @@ func (h *Handler) GetDatasourcesInOrganization(c *gin.Context) {
 
 	datasources, err := h.services.Datasource.GetDatasourcesInOrganization(orgId, userData.UserId)
 	if err != nil {
-		switch err.(type) {
-		case myerr.BadRequest:
-			myerr.New(c, http.StatusBadRequest, err.Error())
-		case myerr.InternalError:
-			myerr.New(c, http.StatusInternalServerError, err.Error())
-		default:
-			myerr.New(c, http.StatusTeapot, err.Error())
-		}
+		myerr.NewErrorWithType(c, err)
 		return
 	}
 
@@ -87,16 +80,7 @@ func (h *Handler) DeleteDatasource(c *gin.Context) {
 
 	id, err := h.services.Datasource.DeleteDatasource(datasourceId, userData.UserId)
 	if err != nil {
-		switch err.(type) {
-		case myerr.BadRequest:
-			myerr.New(c, http.StatusBadRequest, err.Error())
-		case myerr.InternalError:
-			myerr.New(c, http.StatusInternalServerError, err.Error())
-		case myerr.Forbidden:
-			myerr.New(c, http.StatusForbidden, err.Error())
-		default:
-			myerr.New(c, http.StatusTeapot, err.Error())
-		}
+		myerr.NewErrorWithType(c, err)
 		return
 	}
 

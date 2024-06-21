@@ -42,6 +42,7 @@ type Datasource interface {
 
 	CheckUserInOrganization(organizationId, userId int) (bool, error)
 	GetDatasourcesInOrganization(organizationId int) ([]model.DatasourceInOrganization, error)
+	GetDatasourceData(datasourceId int, role string) (model.Datasource, model.DatasourceUser, error)
 
 	GetUserRoleInDatasource(datasourceId, userId int) (string, error)
 	DeleteDatasource(datasourceId int) (int, string, error)

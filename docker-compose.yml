@@ -16,6 +16,19 @@ services:
     networks:
       - appnet
 
+  dbb-proxy:
+    build:
+      context: ../dbb-proxy/
+      dockerfile: Dockerfile
+    container_name: dbb-proxy
+    restart: unless-stopped
+    depends_on:
+      - dbb-server
+    ports:
+      - "${PROXY_BIND_ADDR}:${PROXY_BIND_ADDR}"
+    networks:
+      - appnet
+
   dbb-db:
     image: postgres:alpine3.20
     container_name: dbb-db

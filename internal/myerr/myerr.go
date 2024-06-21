@@ -4,6 +4,7 @@ import (
 	"dbb-server/internal/model"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
+	"net/http"
 )
 
 func New(c *gin.Context, statusCode int, message string) {
@@ -14,6 +15,20 @@ func New(c *gin.Context, statusCode int, message string) {
 		Message: message,
 		Payload: nil,
 	})
+}
+
+func NewErrorWithType(c *gin.Context, err error) {
+	switch err.(type) {
+	case BadRequest:
+		New(c, http.StatusBadRequest, err.Error())
+	case InternalError:
+		New(c, http.StatusInternalServerError, err.Error())
+	case Forbidden:
+		New(c, http.StatusForbidden, err.Error())
+	default:
+		New(c, http.StatusTeapot, err.Error())
+	}
+	return
 }
 
 type BadRequest struct {

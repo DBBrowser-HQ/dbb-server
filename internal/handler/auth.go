@@ -76,7 +76,7 @@ func (h *Handler) RefreshTokens(c *gin.Context) {
 
 	claims, err := h.services.Auth.ParseRefreshToken(input.RefreshToken)
 	if err != nil {
-		myerr.New(c, http.StatusInternalServerError, err.Error())
+		myerr.NewErrorWithType(c, err)
 		return
 	}
 
