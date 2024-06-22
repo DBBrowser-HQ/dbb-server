@@ -9,7 +9,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/google/uuid"
-	_ "github.com/jmrobles/h2go"
 	"golang.org/x/crypto/sha3"
 	"os"
 	"time"
