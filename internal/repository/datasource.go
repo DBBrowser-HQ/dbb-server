@@ -218,7 +218,8 @@ func (r *DataSourcePostgres) DeleteDatasource(datasourceId int) (int, string, er
 
 func (r *DataSourcePostgres) GetDatasourceData(datasourceId int, role string) (model.Datasource, model.DatasourceUser, error) {
 	queryGetDatasource := fmt.Sprintf(`SELECT id, host, port, name FROM %s WHERE id=$1`, DatasourcesTable)
-	queryGetUser := fmt.Sprintf(`SELECT id, username, password FROM %s WHERE username=$1`, DatasourceUsersTable)
+	queryGetUser := fmt.Sprintf(`SELECT id, username, password FROM %s
+                              			WHERE username=$1 AND datasource_id=$2`, DatasourceUsersTable)
 
 	var datasource model.Datasource
 	var user model.DatasourceUser
@@ -237,7 +238,7 @@ func (r *DataSourcePostgres) GetDatasourceData(datasourceId int, role string) (m
 		return datasource, user, myerr.NewInternalError(err.Error())
 	}
 
-	err = tx.Get(&user, queryGetUser, role)
+	err = tx.Get(&user, queryGetUser, role, datasourceId)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return datasource, user, myerr.NewBadRequest("no such user: " + err.Error())
