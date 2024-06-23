@@ -93,7 +93,7 @@ func (r *OrganizationPostgres) DeleteUserFromOrganization(userId, organizationId
 }
 
 func (r *OrganizationPostgres) ChangeUserRoleInOrganization(userId, organizationId int, role string) (int, error) {
-	query := fmt.Sprintf(`UPDATE %s SET role=$1 WHERE user_id=$2 AND organization_id=$3 RETURNING id`, UsersOrganizationsTable)
+	query := fmt.Sprintf(`UPDATE %s SET role=$1 WHERE user_id=$2 AND organization_id=$3 RETURNING user_id`, UsersOrganizationsTable)
 
 	var id int
 	err := r.db.Get(&id, query, role, userId, organizationId)
