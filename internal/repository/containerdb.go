@@ -23,7 +23,7 @@ func NewContainerDB(dbHost, dbUsername, dbPassword, dbName string, dbPort int) (
 
 	ticker := time.NewTicker(100 * time.Millisecond)
 	defer ticker.Stop()
-	timeout := time.Now().Add(5 * time.Second)
+	timeout := time.Now().Add(15 * time.Second)
 
 	for {
 		select {
