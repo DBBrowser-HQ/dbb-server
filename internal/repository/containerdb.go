@@ -61,6 +61,7 @@ func (r *ContainerDB) CreateRoles(usernames, passwords []string) error {
 	queryRevokeCreate := `REVOKE CREATE ON DATABASE "%s" FROM %s;`
 
 	queryCreateRole := `CREATE ROLE %s WITH NOSUPERUSER NOCREATEDB NOCREATEROLE LOGIN PASSWORD '%s';`
+	queryFuntions := `GRANT ALL PRIVILEGES ON ALL FUNCTIONS IN SCHEMA "public" TO %s;`
 
 	queryAdminTables := `GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA "public" TO %s;`
 	queryAdminSchema := `GRANT ALL PRIVILEGES ON SCHEMA "public" TO %s;`
@@ -109,6 +110,10 @@ func (r *ContainerDB) CreateRoles(usernames, passwords []string) error {
 			return err
 		}
 		_, err = tx.Exec(fmt.Sprintf(querySchema, username))
+		if err != nil {
+			return err
+		}
+		_, err = tx.Exec(fmt.Sprintf(queryFuntions, username))
 		if err != nil {
 			return err
 		}
