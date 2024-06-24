@@ -66,10 +66,11 @@ func (r *ContainerDB) CreateRoles(usernames, passwords []string) error {
 	queryAdminSchema := `GRANT ALL PRIVILEGES ON SCHEMA "public" TO %s;`
 
 	queryRedactorTables := `GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA "public" TO %s;`
-	queryRedactorSchema := `REVOKE ALL PRIVILEGES ON SCHEMA "public" FROM %s;`
+	queryRedactorSchema := `GRANT ALL PRIVILEGES ON SCHEMA "public" TO %s;`
+	//queryRedactorSchema := `REVOKE ALL PRIVILEGES ON SCHEMA "public" FROM %s;`
 
 	queryReaderTables := `GRANT SELECT ON ALL TABLES IN SCHEMA "public" TO %s;`
-	queryReaderSchema := `REVOKE ALL PRIVILEGES ON SCHEMA "public" FROM %s;`
+	queryReaderSchema := `GRANT ALL PRIVILEGES ON SCHEMA "public" TO %s;`
 
 	for i, username := range usernames {
 		if username == model.OwnerRole {
