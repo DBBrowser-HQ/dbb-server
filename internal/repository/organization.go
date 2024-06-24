@@ -68,7 +68,7 @@ func (r *OrganizationPostgres) GetUserRoleInOrganization(userId, organizationId 
 }
 
 func (r *OrganizationPostgres) DeleteOrganization(organizationId int) (int, error) {
-	query := fmt.Sprintf(`DELETE FROM %s WHERE organization_id=$1 RETURNING id`, OrganizationsTable)
+	query := fmt.Sprintf(`DELETE FROM %s WHERE id=$1 RETURNING id`, OrganizationsTable)
 
 	var id int
 	err := r.db.Get(&id, query, organizationId)
@@ -85,7 +85,7 @@ func (r *OrganizationPostgres) ChangeOrganizationName(organizationId int, name s
 }
 
 func (r *OrganizationPostgres) DeleteUserFromOrganization(userId, organizationId int) (int, error) {
-	query := fmt.Sprintf(`DELETE FROM %s WHERE user_id=$1 AND organization_id=$2 RETURNING id`, UsersOrganizationsTable)
+	query := fmt.Sprintf(`DELETE FROM %s WHERE user_id=$1 AND organization_id=$2 RETURNING user_id`, UsersOrganizationsTable)
 
 	var id int
 	err := r.db.Get(&id, query, userId, organizationId)

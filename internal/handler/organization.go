@@ -159,6 +159,11 @@ func (h *Handler) InviteUserToOrganization(c *gin.Context) {
 		return
 	}
 
+	if newUserId == userData.UserId {
+		myerr.New(c, http.StatusBadRequest, "You can't invite yourself")
+		return
+	}
+
 	var input struct {
 		OrganizationId int    `json:"organizationId" binding:"required"`
 		Role           string `json:"role" binding:"required"`
@@ -210,6 +215,11 @@ func (h *Handler) DeleteUserFromOrganization(c *gin.Context) {
 		return
 	}
 
+	if newUserId == userData.UserId {
+		myerr.New(c, http.StatusBadRequest, "Don't do it please")
+		return
+	}
+
 	var input struct {
 		OrganizationId int `json:"organizationId" binding:"required"`
 	}
@@ -255,6 +265,11 @@ func (h *Handler) ChangeUserRoleInOrganization(c *gin.Context) {
 	newUserId, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		myerr.New(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	if newUserId == userData.UserId {
+		myerr.New(c, http.StatusBadRequest, "Don't do it please")
 		return
 	}
 
