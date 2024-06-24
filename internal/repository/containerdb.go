@@ -61,16 +61,22 @@ func (r *ContainerDB) CreateRoles(usernames, passwords []string) error {
 	queryRevokeCreate := `REVOKE CREATE ON DATABASE "%s" FROM %s;`
 
 	queryCreateRole := `CREATE ROLE %s WITH NOSUPERUSER NOCREATEDB NOCREATEROLE LOGIN PASSWORD '%s';`
-	queryFunctions := `GRANT ALL PRIVILEGES ON ALL FUNCTIONS IN SCHEMA "public" TO %s;`
+	queryFunctions := `ALTER DEFAULT PRIVILEGES FOR ROLE %s IN SCHEMA public GRANT ALL PRIVILEGES ON FUNCTIONS TO PUBLIC;`
 
-	queryAdminTables := `GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA "public" TO %s;`
+	queryAdminTables := `ALTER DEFAULT PRIVILEGES FOR ROLE admin IN SCHEMA public GRANT ALL PRIVILEGES ON TABLES TO admin;`
+	queryAdminRedactorTables := `ALTER DEFAULT PRIVILEGES FOR ROLE admin IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO redactor;`
+	queryAdminReaderTables := `ALTER DEFAULT PRIVILEGES FOR ROLE admin IN SCHEMA public GRANT SELECT ON TABLES TO reader;`
 	queryAdminSchema := `GRANT ALL PRIVILEGES ON SCHEMA "public" TO %s;`
 
-	queryRedactorTables := `GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA "public" TO %s;`
+	queryRedactorAdminTables := `ALTER DEFAULT PRIVILEGES FOR ROLE redactor IN SCHEMA public GRANT ALL PRIVILEGES ON TABLES TO admin;`
+	queryRedactorTables := `ALTER DEFAULT PRIVILEGES FOR ROLE redactor IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO redactor;`
+	queryRedactorReaderTables := `ALTER DEFAULT PRIVILEGES FOR ROLE redactor IN SCHEMA public GRANT SELECT TO reader;`
 	queryRedactorSchema := `GRANT ALL PRIVILEGES ON SCHEMA "public" TO %s;`
 	//queryRedactorSchema := `REVOKE ALL PRIVILEGES ON SCHEMA "public" FROM %s;`
 
-	queryReaderTables := `GRANT SELECT ON ALL TABLES IN SCHEMA "public" TO %s;`
+	queryReaderAdminTables := `ALTER DEFAULT PRIVILEGES FOR ROLE reader IN SCHEMA public GRANT ALL PRIVILEGES ON TABLES TO admin;`
+	queryReaderRedactorTables := `ALTER DEFAULT PRIVILEGES FOR ROLE reader IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO redactor;`
+	queryReaderTables := `ALTER DEFAULT PRIVILEGES FOR ROLE reader IN SCHEMA public GRANT SELECT TO reader;`
 	queryReaderSchema := `GRANT ALL PRIVILEGES ON SCHEMA "public" TO %s;`
 
 	for i, username := range usernames {
@@ -85,27 +91,45 @@ func (r *ContainerDB) CreateRoles(usernames, passwords []string) error {
 		if err != nil {
 			return err
 		}
+		_, err = tx.Exec(fmt.Sprintf(queryFunctions, username))
+		if err != nil {
+			return err
+		}
 		for _, database := range databaseToRevoke {
 			_, err = tx.Exec(fmt.Sprintf(queryRevokeConnect, database, username))
 			if err != nil {
 				return err
 			}
 		}
-		var queryTables, querySchema string
+		var queryTables1, queryTables2, queryTables3, querySchema string
 
 		switch username {
 		case model.AdminRole:
-			queryTables = queryAdminTables
+			queryTables1 = queryAdminTables
+			queryTables2 = queryAdminRedactorTables
+			queryTables3 = queryAdminReaderTables
 			querySchema = queryAdminSchema
 		case model.RedactorRole:
-			queryTables = queryRedactorTables
+			queryTables1 = queryRedactorAdminTables
+			queryTables2 = queryRedactorTables
+			queryTables3 = queryRedactorReaderTables
 			querySchema = queryRedactorSchema
 		case model.ReaderRole:
-			queryTables = queryReaderTables
+			queryTables1 = queryReaderAdminTables
+			queryTables2 = queryReaderRedactorTables
+			queryTables3 = queryReaderTables
 			querySchema = queryReaderSchema
 		}
 
-		_, err = tx.Exec(fmt.Sprintf(queryTables, username))
+		_, err = tx.Exec(fmt.Sprintf(queryTables1, username))
+		if err != nil {
+			return err
+		}
+		_, err = tx.Exec(fmt.Sprintf(queryTables2, username))
+		if err != nil {
+			return err
+		}
+		_, err = tx.Exec(fmt.Sprintf(queryTables3, username))
 		if err != nil {
 			return err
 		}
@@ -113,10 +137,7 @@ func (r *ContainerDB) CreateRoles(usernames, passwords []string) error {
 		if err != nil {
 			return err
 		}
-		_, err = tx.Exec(fmt.Sprintf(queryFunctions, username))
-		if err != nil {
-			return err
-		}
+
 	}
 
 	return tx.Commit()
