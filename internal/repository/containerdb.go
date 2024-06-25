@@ -70,13 +70,13 @@ func (r *ContainerDB) CreateRoles(usernames, passwords []string) error {
 
 	queryRedactorAdminTables := `ALTER DEFAULT PRIVILEGES FOR ROLE redactor IN SCHEMA public GRANT ALL PRIVILEGES ON TABLES TO admin;`
 	queryRedactorTables := `ALTER DEFAULT PRIVILEGES FOR ROLE redactor IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO redactor;`
-	queryRedactorReaderTables := `ALTER DEFAULT PRIVILEGES FOR ROLE redactor IN SCHEMA public GRANT SELECT TO reader;`
+	queryRedactorReaderTables := `ALTER DEFAULT PRIVILEGES FOR ROLE redactor IN SCHEMA public GRANT SELECT ON TABLES TO reader;`
 	queryRedactorSchema := `GRANT ALL PRIVILEGES ON SCHEMA "public" TO %s;`
 	//queryRedactorSchema := `REVOKE ALL PRIVILEGES ON SCHEMA "public" FROM %s;`
 
 	queryReaderAdminTables := `ALTER DEFAULT PRIVILEGES FOR ROLE reader IN SCHEMA public GRANT ALL PRIVILEGES ON TABLES TO admin;`
 	queryReaderRedactorTables := `ALTER DEFAULT PRIVILEGES FOR ROLE reader IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO redactor;`
-	queryReaderTables := `ALTER DEFAULT PRIVILEGES FOR ROLE reader IN SCHEMA public GRANT SELECT TO reader;`
+	queryReaderTables := `ALTER DEFAULT PRIVILEGES FOR ROLE reader IN SCHEMA public GRANT SELECT ON TABLES TO reader;`
 	queryReaderSchema := `GRANT ALL PRIVILEGES ON SCHEMA "public" TO %s;`
 
 	for i, username := range usernames {
@@ -101,6 +101,12 @@ func (r *ContainerDB) CreateRoles(usernames, passwords []string) error {
 				return err
 			}
 		}
+	}
+
+	for _, username := range usernames {
+		if username == model.OwnerRole {
+			continue
+		}
 		var queryTables1, queryTables2, queryTables3, querySchema string
 
 		switch username {
@@ -121,15 +127,15 @@ func (r *ContainerDB) CreateRoles(usernames, passwords []string) error {
 			querySchema = queryReaderSchema
 		}
 
-		_, err = tx.Exec(fmt.Sprintf(queryTables1, username))
+		_, err = tx.Exec(queryTables1)
 		if err != nil {
 			return err
 		}
-		_, err = tx.Exec(fmt.Sprintf(queryTables2, username))
+		_, err = tx.Exec(queryTables2)
 		if err != nil {
 			return err
 		}
-		_, err = tx.Exec(fmt.Sprintf(queryTables3, username))
+		_, err = tx.Exec(queryTables3)
 		if err != nil {
 			return err
 		}
